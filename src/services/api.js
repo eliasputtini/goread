@@ -3,15 +3,15 @@ import {baseURL} from './config';
 
 export const api = axios.create({baseURL});
 
-export const getSearchRepo = async query => {
+export const getSearchRepo = async (query, page) => {
   try {
     const response = await axios.get(
       'https://api.github.com/search/repositories',
       {
         params: {
           q: query,
-          sort: 'stars',
-          order: 'desc',
+          page: page,
+          per_page: 50,
         },
       },
     );
@@ -21,3 +21,4 @@ export const getSearchRepo = async query => {
     console.error('error => ', err);
   }
 };
+

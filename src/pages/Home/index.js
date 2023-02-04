@@ -1,75 +1,37 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {FlatList, ActivityIndicator, Keyboard} from 'react-native';
-import {getSearchRepo} from '../../services/api.js';
-import {
-  Container,
-  Text,
-  Input,
-  Title,
-  Container2,
-  ProfilePicture,
-  InfoContainer,
-  OwnerName,
-  RepoName,
-  StarsContainer,
-  Stars,
-  NamesContainer,
-} from './styles.js';
+import {RepositoryInfo} from '../../components/RepositoryInfo';
+import {Container, Text, Input, Title} from './styles.js';
 
-const RepositoryInfo = ({repo}) => {
-  console.log(repo.name);
-  return (
-    <Container2>
-      <InfoContainer>
-        <ProfilePicture source={{uri: repo.owner.avatar_url}} />
-        <NamesContainer>
-          <OwnerName>{repo.owner.login}</OwnerName>
-          <RepoName>{repo.name}</RepoName>
-        </NamesContainer>
-      </InfoContainer>
-      <StarsContainer>
-        <Stars>{repo.stargazers_count} stars</Stars>
-      </StarsContainer>
-    </Container2>
-  );
-};
+import {useDispatch, useSelector, shallowEqual} from 'react-redux';
+import {getDataRequest} from '../../redux/action';
 
 export function Home() {
   const [query, setQuery] = useState('');
-  const [data, setData] = useState([]);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const handleSubmit = async () => {
+  const dispatch = useDispatch();
+
+  const {isLoading, isError, repoData, error} = useSelector(
+    state => state,
+    shallowEqual,
+  );
+
+  const handleGetData = async () => {
     Keyboard.dismiss();
-    setLoading(true);
-    try {
-      const result = await getSearchRepo(
-        `${query}in:name&page=${page}&per_page=10`,
-      );
-      setData(result.items);
-    } catch (error) {
-      setError(error);
-    } finally {
-      setLoading(false);
+    dispatch(getDataRequest(query, page));
+  };
+
+  const handleGetMoreData = async () => {
+    if (isLoading) {
+      return;
     }
-  };
-
-  const handleLoadMore = () => {
     setPage(page + 1);
-    handleSubmit();
+    Keyboard.dismiss();
+    dispatch(getDataRequest(query, page, repoData));
   };
 
-  if (loading) {
-    return (
-      <Container>
-        <ActivityIndicator size="large" />
-      </Container>
-    );
-  }
-
-  if (error) {
+  if (isError) {
     return (
       <Container>
         <Text>An error occurred: {error.message}</Text>
@@ -85,25 +47,17 @@ export function Home() {
         placeholderTextColor="#48484a"
         value={query}
         onChangeText={setQuery}
-        onSubmitEditing={handleSubmit}
+        onSubmitEditing={handleGetData}
         returnKeyType="search"
       />
 
       <FlatList
-        data={data}
+        data={repoData}
         keyExtractor={item => item.id}
         renderItem={({item}) => <RepositoryInfo repo={item} />}
-        onEndReached={handleLoadMore}
-        ListFooterComponent={loading && <ActivityIndicator size="large" />}
+        onEndReached={handleGetMoreData}
+        ListFooterComponent={isLoading && <ActivityIndicator size="large" />}
       />
-
-      {loading && data.length < 1 ? (
-        <>
-          <ActivityIndicator size="large" />
-        </>
-      ) : (
-        <></>
-      )}
     </Container>
   );
 }
