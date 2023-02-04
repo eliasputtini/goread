@@ -1,6 +1,6 @@
 # React Native Github Repo
 
-App that search repositories and open them by using github search api
+App that search repositories and open them by using github search api, in a infinite scroll feed.
 
 ### Dependencies
 
