@@ -4,7 +4,7 @@ import {RepositoryInfo} from '../../components/RepositoryInfo';
 import {Container, Text, Input, Title} from './styles.js';
 
 import {useDispatch, useSelector, shallowEqual} from 'react-redux';
-import {getDataRequest} from '../../redux/action';
+import {getDataRequest, getMoreDataRequest} from '../../redux/action';
 
 export function Home() {
   const [query, setQuery] = useState('');
@@ -12,13 +12,18 @@ export function Home() {
 
   const dispatch = useDispatch();
 
-  const {isLoading, isError, repoData, error} = useSelector(
+  const {isLoading, isError, repoData} = useSelector(
     state => state,
     shallowEqual,
   );
 
+  useEffect(() => {
+    console.log(repoData.length);
+  }, [repoData]);
+
   const handleGetData = async () => {
     Keyboard.dismiss();
+    setPage(page + 1);
     dispatch(getDataRequest(query, page));
   };
 
@@ -28,13 +33,13 @@ export function Home() {
     }
     setPage(page + 1);
     Keyboard.dismiss();
-    dispatch(getDataRequest(query, page, repoData));
+    dispatch(getMoreDataRequest(query, page, repoData));
   };
 
   if (isError) {
     return (
       <Container>
-        <Text>An error occurred: {error.message}</Text>
+        <Text>Erro ao buscar, tente novamente em alguns minutos</Text>
       </Container>
     );
   }
@@ -54,8 +59,9 @@ export function Home() {
       <FlatList
         data={repoData}
         keyExtractor={item => item.id}
+        style={{width: '100%'}}
         renderItem={({item}) => <RepositoryInfo repo={item} />}
-        onEndReached={handleGetMoreData}
+        onEndReached={!isLoading && repoData.length > 1 && handleGetMoreData}
         ListFooterComponent={isLoading && <ActivityIndicator size="large" />}
       />
     </Container>

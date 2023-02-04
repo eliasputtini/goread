@@ -25,6 +25,7 @@ export const getDataRequest = (query, page) => async dispatch => {
 
     const repoData = result.items;
 
+    console.log('here');
     dispatch(getDataSuccess({repoData}));
   } catch (err) {
     console.log(err);

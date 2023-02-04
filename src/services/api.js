@@ -11,7 +11,7 @@ export const getSearchRepo = async (query, page) => {
         params: {
           q: query,
           page: page,
-          per_page: 50,
+          per_page: 20,
         },
       },
     );
@@ -21,4 +21,3 @@ export const getSearchRepo = async (query, page) => {
     console.error('error => ', err);
   }
 };
-
